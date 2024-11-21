@@ -3,37 +3,64 @@ let app = express();
 
 const port = 3000;
 
-app.get("/user/:id", (req, res) => {
-    console.log(req.params.id);
-})
+const sequelize = require('./config/db');
+const Usuario = require('./models/usuario');
+const Ponto = require('./models/ponto');
+
+const cors = require('cors');
 
 
-app.post("/user/:id1-:id2", (req,res) => {
-    res.send(req.params);
-})
+app.use(express.json());
+app.use(cors());
 
-//app.METHOD(path, callback [callback...])
-app.get("/teste", (req, res) => {
-    res.send("Resposta da rota/teste");
+sequelize.sync({ alter: true })
+    .then(() => {
+        console.log("sync feito com sucesso");
+    })
+    .catch(error => { console.log("deu erro!")
 });
 
 
-app.post ("/rotapost", (req, res) => {
-    res.send("Retorno da rota usando o método post")
-})
+//const airton = Usuario.create({ nome: "airton2", email: "airton2.junior@ceub.edu.br", login: "airton2", senha: "123"});
+
+// Rota que recupera todos os usuários do sistema
+app.get('/usuarios', async (req, res) => {
+    
+    const usuarios = await Usuario.findAll();
+    res.json(usuarios);
+});
+
+
+// Rota que recupera um usuário específico
+app.get('/usuario/:id_usuario', async (req, res) => {
+    const id_usuario = req.params.id_usuario;
+
+    const usuario = await Usuario.findAll({
+        where: {
+            id_usuario: id_usuario
+        }
+    });
+
+    res.json(usuario);
+
+});
+
+
+// Rota que adiciona um usuário
+app.post('/usuario', async (req, res) => {
+    
+    const usuario = await Usuario.create({
+        nome: req.body.nome,
+        email: req.body.email,
+        senha: req.body.senha,
+        login: req.body.login
+    });
+
+
+    res.json(usuario);
+});
 
 
 app.listen(port, () => {
-    console.log(`Servidor escutando a porta ${port}`);
-})
-
-/*
-    MÉRTODO HTTP PARA RECUPERAR INFORMAÇÕES
-    /user -> retorna todos os usuários (ADM)
-    /user/:id -> retorna a informação do usuário id (ADM, próprio usuário)
-    /user/:id/registers -> retorna os registros do usuário id (ADm, prórpio usuário)
-    /user/:id/registers -> retorna os registros do usuário id (ADM, próprio usuário)
-
-    MÉTODO HTTP PARA CRIAR RECURSOS
-    /user -> cria um usuário
-*/
+    console.log(`servidor escutando a porta ${port}`);
+});
